@@ -1,0 +1,30 @@
+{
+  "name": "not-env-sdk-js",
+  "version": "1.0.0",
+  "description": "JavaScript/TypeScript SDK for not-env environment variable management",
+  "main": "dist/register.js",
+  "types": "dist/register.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "jest",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "environment",
+    "variables",
+    "config",
+    "not-env"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/jest": "^30.0.0",
+    "@types/node": "^24.10.1",
+    "jest": "^30.2.0",
+    "ts-jest": "^29.4.5",
+    "typescript": "^5.9.3"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
