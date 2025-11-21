@@ -1,6 +1,6 @@
-# not-env-sdk-js
+# not-env-sdk
 
-not-env-sdk-js is a JavaScript/TypeScript SDK for Node.js that fetches environment variables from not-env and transparently overrides `process.env` so existing code using `process.env.FOO` works unchanged.
+not-env-sdk is a JavaScript/TypeScript SDK for Node.js that fetches environment variables from not-env and transparently overrides `process.env` so existing code using `process.env.FOO` works unchanged.
 
 ## Overview
 
@@ -14,13 +14,13 @@ The SDK:
 ## Installation
 
 ```bash
-npm install not-env-sdk-js
+npm install not-env-sdk
 ```
 
 Or with yarn:
 
 ```bash
-yarn add not-env-sdk-js
+yarn add not-env-sdk
 ```
 
 ## Prerequisites
@@ -46,7 +46,7 @@ Import the SDK at the very beginning of your application (before any other code 
 
 ```javascript
 // index.js
-import "not-env-sdk-js/register";
+import "not-env-sdk/register";
 
 // Now process.env is patched
 console.log(process.env.DB_HOST);      // comes from not-env
@@ -57,7 +57,7 @@ Or using require:
 
 ```javascript
 // index.js
-require("not-env-sdk-js/register");
+require("not-env-sdk/register");
 
 console.log(process.env.DB_HOST);
 ```
@@ -84,7 +84,7 @@ secret123
 
 ```javascript
 // app.js
-import "not-env-sdk-js/register";
+import "not-env-sdk/register";
 
 const dbHost = process.env.DB_HOST;
 const dbPort = process.env.DB_PORT;
@@ -99,7 +99,7 @@ You can also use the `--require` flag to load the SDK without modifying your cod
 ```bash
 NOT_ENV_URL="https://not-env.example.com" \
 NOT_ENV_API_KEY="your-key" \
-node --require not-env-sdk-js/register index.js
+node --require not-env-sdk/register index.js
 ```
 
 ### With Next.js (Server-Side)
@@ -108,7 +108,7 @@ For Next.js server-side code, import in your API routes or server components:
 
 ```javascript
 // pages/api/example.js or app/api/example/route.js
-import "not-env-sdk-js/register";
+import "not-env-sdk/register";
 
 export default function handler(req, res) {
   const apiKey = process.env.EXTERNAL_API_KEY;
@@ -152,7 +152,7 @@ Create a simple example:
 
 ```javascript
 // example.js
-import "not-env-sdk-js/register";
+import "not-env-sdk/register";
 
 console.log("Database Configuration:");
 console.log(`  Host: ${process.env.DB_HOST}`);
@@ -268,7 +268,7 @@ These variables are always preserved from OS environment:
 The SDK works alongside the CLI:
 
 1. **CLI**: Use `not-env env set` to load variables into your shell
-2. **SDK**: Use `import "not-env-sdk-js/register"` to load variables in Node.js
+2. **SDK**: Use `import "not-env-sdk/register"` to load variables in Node.js
 
 Both can be used together - CLI for shell scripts, SDK for Node.js applications.
 

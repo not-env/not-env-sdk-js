@@ -164,7 +164,7 @@ async function register() {
 
 // Execute registration immediately when imported
 register().catch((error) => {
-  console.error('Failed to initialize not-env-sdk-js:', error);
+  console.error('Failed to initialize not-env-sdk:', error);
   process.exit(1);
 });
 

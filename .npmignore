@@ -1,0 +1,12 @@
+src/
+tests/
+*.test.ts
+jest.config.js
+tsconfig.json
+.gitignore
+node_modules/
+coverage/
+*.log
+.DS_Store
+package-lock.json
+

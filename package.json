@@ -1,22 +1,35 @@
 {
-  "name": "not-env-sdk-js",
-  "version": "1.0.0",
+  "name": "not-env-sdk",
+  "version": "0.1.0",
   "description": "JavaScript/TypeScript SDK for not-env environment variable management",
   "main": "dist/register.js",
   "types": "dist/register.d.ts",
-  "scripts": {
-    "build": "tsc",
-    "test": "jest",
-    "prepublishOnly": "npm run build"
+  "author": "Gavin Johnson <gavinj1984@gmail.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/not-env/not-env-sdk-js.git"
   },
+  "homepage": "https://github.com/not-env/not-env-sdk-js#readme",
+  "bugs": {
+    "url": "https://github.com/not-env/not-env-sdk-js/issues"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
   "keywords": [
     "environment",
     "variables",
     "config",
     "not-env"
   ],
-  "author": "",
-  "license": "MIT",
+  "scripts": {
+    "build": "tsc",
+    "test": "NODE_OPTIONS='--no-webstorage' jest",
+    "prepublishOnly": "npm run build"
+  },
   "devDependencies": {
     "@types/jest": "^30.0.0",
     "@types/node": "^24.10.1",

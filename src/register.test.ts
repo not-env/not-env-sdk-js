@@ -2,7 +2,7 @@
 // Note: Full integration tests would require a running backend server
 // These tests verify the core logic functions
 
-describe('not-env-sdk-js register logic', () => {
+describe('not-env-sdk register logic', () => {
   // Since register.ts executes immediately on import and uses process.exit,
   // we test the logic separately. Integration tests would require:
   // 1. A mock HTTP server
