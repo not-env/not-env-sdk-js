@@ -1,8 +1,34 @@
 # not-env-sdk-js Requirements
 
-This document specifies the functional and non-functional requirements for not-env-sdk-js.
+## Summary
 
-## Functional Requirements
+not-env-sdk-js is a JavaScript/TypeScript SDK for Node.js that fetches environment variables from not-env and transparently overrides `process.env`. Key features:
+
+- **Synchronous Loading**: Variables fetched synchronously during import (blocks until complete)
+- **Transparent Integration**: Existing code using `process.env.FOO` works unchanged
+- **Hermetic Behavior**: Only variables from not-env are available (no OS env fallback)
+- **Preserved Variables**: `NOT_ENV_URL` and `NOT_ENV_API_KEY` preserved from OS environment
+- **Proxy-based**: Uses JavaScript Proxy API to intercept `process.env` access
+- **Error Handling**: Exits process on initialization failure (prevents running with invalid config)
+
+## Quick Reference
+
+| Requirement | Specification |
+|-------------|---------------|
+| **Node.js Version** | 22.0.0 or later |
+| **Module System** | ES6 modules and CommonJS |
+| **HTTP Client** | Node.js built-in `https`/`http` modules |
+| **Initialization** | Synchronous (blocks during import) |
+| **Timeout** | 30 seconds for HTTP requests |
+| **Error Behavior** | Exits process with code 1 on failure |
+
+## Detailed Requirements
+
+See appendices below for complete functional and non-functional requirements.
+
+---
+
+## Appendix A: Functional Requirements
 
 ### FR1: Initialization
 
@@ -95,34 +121,36 @@ This document specifies the functional and non-functional requirements for not-e
 
 ### FR5: Usage Patterns
 
-**FR5.1:** The SDK must support ES6 import:
+**FR5.1:** The SDK must support ES6 import via main entry point:
 ```javascript
-import "not-env-sdk-js/register";
+import "not-env-sdk";
 ```
 
-**FR5.2:** The SDK must support CommonJS require:
+**FR5.2:** The SDK must support CommonJS require via main entry point:
 ```javascript
-require("not-env-sdk-js/register");
+require("not-env-sdk");
 ```
 
-**FR5.3:** The SDK must support Node.js `--require` flag:
+**FR5.3:** The SDK must support Node.js `--require` flag (optional):
 ```bash
-node --require not-env-sdk-js/register index.js
+node --require not-env-sdk index.js
 ```
 
 **FR5.4:** The SDK must work when imported at the top of entry files.
 
 **FR5.5:** The SDK must work when imported before any code that uses `process.env`.
 
-## Non-Functional Requirements
+**FR5.6:** The SDK may support subpath imports (e.g., `not-env-sdk/register`) for backward compatibility, but the main entry point (`not-env-sdk`) is the recommended approach.
+
+## Appendix B: Non-Functional Requirements
 
 ### NFR1: Performance
 
-**NFR1.1:** Variable fetching must complete within 5 seconds (configurable timeout).
+**NFR1.1:** Variable fetching must complete within 30 seconds (timeout).
 
 **NFR1.2:** Process.env access after initialization must be O(1) (map lookup).
 
-**NFR1.3:** Initialization must not block for more than 5 seconds.
+**NFR1.3:** Initialization must not block for more than 30 seconds.
 
 ### NFR2: Security
 
@@ -134,7 +162,7 @@ node --require not-env-sdk-js/register index.js
 
 ### NFR3: Compatibility
 
-**NFR3.1:** The SDK must work with Node.js 18.0.0+.
+**NFR3.1:** The SDK must work with Node.js 22.0.0+.
 
 **NFR3.2:** The SDK must work with TypeScript (provides type definitions).
 
@@ -159,7 +187,7 @@ node --require not-env-sdk-js/register index.js
 
 **NFR5.2:** The SDK must not log successful operations (silent on success).
 
-## Implementation Constraints
+## Appendix C: Implementation Constraints
 
 ### IC1: Technology Stack
 
@@ -167,7 +195,7 @@ node --require not-env-sdk-js/register index.js
 
 **IC1.2:** Runtime: Node.js only (uses Node.js built-in modules).
 
-**IC1.3:** HTTP Client: Node.js built-in `https`/`http` modules.
+**IC1.3:** HTTP Client: Node.js built-in `https`/`http` modules (via execSync with inline script for synchronous requests).
 
 **IC1.4:** Build Tool: TypeScript compiler (`tsc`).
 
@@ -195,13 +223,13 @@ node --require not-env-sdk-js/register index.js
 
 **IC4.2:** Runtime errors (variable access) must return `undefined` (not throw).
 
-## Expected Behaviors
+## Appendix D: Expected Behaviors
 
 ### EB1: Successful Initialization
 
-1. SDK is imported: `import "not-env-sdk-js/register"`
+1. SDK is imported: `import "not-env-sdk"`
 2. SDK reads `NOT_ENV_URL` and `NOT_ENV_API_KEY`
-3. SDK makes HTTPS GET to `{NOT_ENV_URL}/variables`
+3. SDK makes HTTPS GET to `{NOT_ENV_URL}/variables` synchronously
 4. SDK receives JSON response with variables
 5. SDK builds map of variables
 6. SDK creates Proxy for `process.env`
@@ -239,25 +267,7 @@ node --require not-env-sdk-js/register index.js
 5. Process exits with code 1
 6. Application does not start
 
-## API Surface
-
-### Import
-
-```typescript
-import "not-env-sdk-js/register";
-```
-
-No exports needed - side-effect import that patches `process.env`.
-
-### Programmatic Access (Optional)
-
-```typescript
-import register from "not-env-sdk-js";
-
-await register(); // Manual initialization (not recommended)
-```
-
-## Testing Scenarios
+## Appendix E: Testing Scenarios
 
 ### TS1: Basic Usage
 
@@ -297,4 +307,3 @@ await register(); // Manual initialization (not recommended)
 - Set valid URL but invalid API key
 - Import SDK
 - Verify 401 error is caught and process exits
-

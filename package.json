@@ -4,6 +4,18 @@
   "description": "JavaScript/TypeScript SDK for not-env environment variable management",
   "main": "dist/register.js",
   "types": "dist/register.d.ts",
+  "exports": {
+    ".": {
+      "require": "./dist/register.js",
+      "import": "./dist/register.js",
+      "types": "./dist/register.d.ts"
+    },
+    "./register": {
+      "require": "./dist/register.js",
+      "import": "./dist/register.js",
+      "types": "./dist/register.d.ts"
+    }
+  },
   "author": "Gavin Johnson <gavinj1984@gmail.com>",
   "license": "MIT",
   "repository": {
@@ -38,6 +50,6 @@
     "typescript": "^5.9.3"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=22.0.0"
   }
 }

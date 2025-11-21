@@ -1,15 +1,42 @@
 # not-env-sdk
 
-not-env-sdk is a JavaScript/TypeScript SDK for Node.js that fetches environment variables from not-env and transparently overrides `process.env` so existing code using `process.env.FOO` works unchanged.
+JavaScript/TypeScript SDK for Node.js that fetches environment variables from not-env and transparently overrides `process.env`.
+
+## 30-Second Example
+
+```bash
+export NOT_ENV_URL="http://localhost:1212"
+export NOT_ENV_API_KEY="your-env-read-only-key"
+```
+```javascript
+require('not-env-sdk');
+console.log(process.env.DB_HOST);  // That's it!
+```
+
+## Quick Reference
+
+| Task | Command/Code |
+|------|--------------|
+| **Install** | `npm install not-env-sdk` |
+| **Set environment variables** | `export NOT_ENV_URL="..."`<br>`export NOT_ENV_API_KEY="..."` |
+| **Import SDK** | `import "not-env-sdk";` or `require("not-env-sdk");` |
+| **Use variables** | `process.env.DB_HOST` (works transparently) |
+| **Run with --require** | `node --require not-env-sdk index.js` |
 
 ## Overview
 
 The SDK:
-- Fetches all variables from not-env at startup
+- Fetches all variables from not-env at startup (synchronously)
 - Monkey-patches `process.env` to return not-env values
 - Preserves `NOT_ENV_URL` and `NOT_ENV_API_KEY` from OS environment
 - Makes other keys undefined if not in not-env (hermetic behavior)
 - Works transparently with existing code
+
+## Prerequisites
+
+- Node.js 22.0.0 or later
+- A running not-env backend
+- An ENV_READ_ONLY or ENV_ADMIN API key
 
 ## Installation
 
@@ -17,23 +44,9 @@ The SDK:
 npm install not-env-sdk
 ```
 
-Or with yarn:
-
-```bash
-yarn add not-env-sdk
-```
-
-## Prerequisites
-
-- Node.js 18.0.0 or later
-- A running not-env backend
-- An ENV_READ_ONLY or ENV_ADMIN API key
-
 ## Quick Start
 
 ### 1. Set Environment Variables
-
-Set the backend URL and API key as OS environment variables:
 
 ```bash
 export NOT_ENV_URL="https://not-env.example.com"
@@ -42,11 +55,11 @@ export NOT_ENV_API_KEY="your-env-read-only-key-here"
 
 ### 2. Import the SDK
 
-Import the SDK at the very beginning of your application (before any other code that uses `process.env`):
+Import at the very beginning of your application (before any code that uses `process.env`):
 
 ```javascript
 // index.js
-import "not-env-sdk/register";
+import "not-env-sdk";
 
 // Now process.env is patched
 console.log(process.env.DB_HOST);      // comes from not-env
@@ -56,9 +69,7 @@ console.log(process.env.DB_PASSWORD);  // comes from not-env
 Or using require:
 
 ```javascript
-// index.js
-require("not-env-sdk/register");
-
+require("not-env-sdk");
 console.log(process.env.DB_HOST);
 ```
 
@@ -68,47 +79,33 @@ console.log(process.env.DB_HOST);
 node index.js
 ```
 
-**Expected output:**
-```
-localhost
-secret123
-```
-
-**If this works correctly, you should see:**
-- Variable values from not-env printed
-- Your application can now use `process.env.*` as usual
-
 ## Usage Examples
 
 ### Basic Usage
 
 ```javascript
-// app.js
-import "not-env-sdk/register";
+import "not-env-sdk";
 
 const dbHost = process.env.DB_HOST;
 const dbPort = process.env.DB_PORT;
-
 console.log(`Connecting to ${dbHost}:${dbPort}`);
 ```
 
-### With Node.js --require Flag
-
-You can also use the `--require` flag to load the SDK without modifying your code:
+### With Node.js --require Flag (Optional)
 
 ```bash
 NOT_ENV_URL="https://not-env.example.com" \
 NOT_ENV_API_KEY="your-key" \
-node --require not-env-sdk/register index.js
+node --require not-env-sdk index.js
 ```
+
+**Note:** The `--require` flag is optional. You can simply import the SDK normally in your code.
 
 ### With Next.js (Server-Side)
 
-For Next.js server-side code, import in your API routes or server components:
-
 ```javascript
 // pages/api/example.js or app/api/example/route.js
-import "not-env-sdk/register";
+import "not-env-sdk";
 
 export default function handler(req, res) {
   const apiKey = process.env.EXTERNAL_API_KEY;
@@ -116,13 +113,18 @@ export default function handler(req, res) {
 }
 ```
 
-**Note:** This SDK is primarily for server-side Node.js. For client-side code, use environment variables at build time or use a different approach.
+## Environment Variables
+
+| Variable | Required | Description | Example |
+|----------|----------|-------------|---------|
+| `NOT_ENV_URL` | Yes | Backend URL | `https://not-env.example.com` |
+| `NOT_ENV_API_KEY` | Yes | ENV_READ_ONLY or ENV_ADMIN API key | `dGVzdF9lbnZfcmVhZG9ubHlfa2V5X2hlcmU...` |
 
 ## How It Works
 
 1. **On Import**: The SDK immediately:
    - Reads `NOT_ENV_URL` and `NOT_ENV_API_KEY` from `process.env`
-   - Fetches all variables from the `/variables` endpoint
+   - Fetches all variables from the `/variables` endpoint synchronously
    - Creates a Proxy for `process.env`
 
 2. **Process.env Behavior**:
@@ -132,105 +134,28 @@ export default function handler(req, res) {
 
 3. **Transparent Integration**: Existing code using `process.env.FOO` works without changes.
 
-## Environment Variables
-
-### Required
-
-- `NOT_ENV_URL`: Backend URL (e.g., `https://not-env.example.com`)
-- `NOT_ENV_API_KEY`: ENV_READ_ONLY or ENV_ADMIN API key
-
-### Example
-
-```bash
-export NOT_ENV_URL="https://not-env.example.com"
-export NOT_ENV_API_KEY="dGVzdF9lbnZfcmVhZG9ubHlfa2V5X2hlcmU..."
-```
-
-## Example Application
-
-Create a simple example:
-
-```javascript
-// example.js
-import "not-env-sdk/register";
-
-console.log("Database Configuration:");
-console.log(`  Host: ${process.env.DB_HOST}`);
-console.log(`  Port: ${process.env.DB_PORT}`);
-console.log(`  Name: ${process.env.DB_NAME}`);
-
-// Use variables as normal
-const connectionString = `postgresql://${process.env.DB_USER}:${process.env.DB_PASSWORD}@${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB_NAME}`;
-console.log(`Connection: ${connectionString}`);
-```
-
-Run it:
-
-```bash
-NOT_ENV_URL="https://not-env.example.com" \
-NOT_ENV_API_KEY="your-key" \
-node example.js
-```
-
-**Expected output:**
-```
-Database Configuration:
-  Host: localhost
-  Port: 5432
-  Name: myapp
-Connection: postgresql://user:pass@localhost:5432/myapp
-```
-
-**If this works correctly, you should see:**
-- All variables printed from not-env
-- Connection string built using those variables
-- No errors or undefined values (assuming variables exist in not-env)
-
 ## Error Handling
 
-### Missing Environment Variables
+**Missing environment variables:**
+- Error: `NOT_ENV_URL environment variable is required`
+- Solution: Set both `NOT_ENV_URL` and `NOT_ENV_API_KEY`
 
-If `NOT_ENV_URL` or `NOT_ENV_API_KEY` are missing:
+**Backend unreachable:**
+- Error: `Request failed: getaddrinfo ENOTFOUND...`
+- Solution: Check `NOT_ENV_URL` and ensure backend is running
 
-```
-Error: NOT_ENV_URL environment variable is required
-```
+**Invalid API key:**
+- Error: `Failed to fetch variables: 401 - Unauthorized`
+- Solution: Verify `NOT_ENV_API_KEY` is correct
 
-**Solution:** Set both environment variables before running your application.
-
-### Backend Unreachable
-
-If the backend is unreachable:
-
-```
-Error: Request failed: getaddrinfo ENOTFOUND not-env.example.com
-```
-
-**Solution:** Check the `NOT_ENV_URL` and ensure the backend is running and accessible.
-
-### Invalid API Key
-
-If the API key is invalid:
-
-```
-Error: Failed to fetch variables: 401 - Unauthorized
-```
-
-**Solution:** Verify your `NOT_ENV_API_KEY` is correct and not revoked.
-
-### Initialization Failure
-
-If initialization fails, the SDK will:
-- Print an error to stderr
-- Exit the process with code 1
-
-This ensures your application doesn't run with incorrect configuration.
+**Initialization failure:**
+- SDK prints error to stderr and exits with code 1
+- Ensures application doesn't run with incorrect configuration
 
 ## Behavior Details
 
 ### Hermetic Behavior
 
-The SDK provides hermetic behavior:
 - Variables not in not-env return `undefined`
 - No fallback to OS environment variables (except `NOT_ENV_URL` and `NOT_ENV_API_KEY`)
 - Prevents setting variables at runtime
@@ -250,45 +175,35 @@ These variables are always preserved from OS environment:
 
 ## Compatibility
 
-### Supported Runtimes
-
-- Node.js 18.0.0+
+**Supported:**
+- Node.js 22.0.0+
 - Server-side Next.js
 - Express.js
 - Any Node.js application
 
-### Not Supported
-
+**Not Supported:**
 - Browser/client-side JavaScript (requires Node.js)
 - Deno (not tested)
 - Bun (may work but not tested)
 
-## Integration with CLI
-
-The SDK works alongside the CLI:
-
-1. **CLI**: Use `not-env env set` to load variables into your shell
-2. **SDK**: Use `import "not-env-sdk/register"` to load variables in Node.js
-
-Both can be used together - CLI for shell scripts, SDK for Node.js applications.
-
 ## Troubleshooting
 
-### Variables are undefined
+**Where do I get ENV_READ_ONLY key?**
+- From `not-env env import` or `not-env env create` output. Look for the "ENV_READ_ONLY key:" line.
+- This is the key you set as `NOT_ENV_API_KEY` environment variable.
 
+**Variables are undefined:**
 - Check that variables exist in not-env: `not-env var list`
 - Verify you're using the correct API key (ENV_READ_ONLY or ENV_ADMIN)
 - Ensure the SDK is imported before any code that uses `process.env`
 
-### SDK not loading
-
+**SDK not loading:**
 - Ensure the SDK is imported at the very top of your entry file
 - Check that `NOT_ENV_URL` and `NOT_ENV_API_KEY` are set
 - Verify the backend is accessible
 
-### Performance concerns
-
-- Variables are fetched once at startup
+**Performance concerns:**
+- Variables are fetched once at startup (synchronously)
 - No caching beyond the initial fetch
 - Network request happens synchronously during import
 
@@ -300,7 +215,6 @@ Both can be used together - CLI for shell scripts, SDK for Node.js applications.
 
 ## Next Steps
 
-- Set up your [backend](../not-env-backend/README.md)
-- Use the [CLI](../not-env-cli/README.md) to manage variables
+- Set up your [backend](../../not-env-backend/README.md)
+- Use the [CLI](../../not-env-cli/README.md) to manage variables
 - Integrate the SDK into your Node.js applications
-
