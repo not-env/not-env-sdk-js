@@ -1,6 +1,6 @@
 {
   "name": "not-env-sdk",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "JavaScript/TypeScript SDK for not-env environment variable management",
   "main": "dist/register.js",
   "types": "dist/register.d.ts",
