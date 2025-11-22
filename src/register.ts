@@ -29,61 +29,19 @@ interface VariablesResponse {
  */
 function fetchVariables(url: string, apiKey: string): Map<string, string> {
   const urlObj = new URL(url);
-  const variablesUrl = `${urlObj.origin}${urlObj.pathname}/variables`;
+  // Normalize pathname: remove trailing slash if present, then append /variables
+  const normalizedPath = urlObj.pathname.endsWith('/') 
+    ? urlObj.pathname.slice(0, -1) 
+    : urlObj.pathname;
+  const variablesUrl = `${urlObj.origin}${normalizedPath}/variables`;
 
   // Use Node.js itself to make a synchronous HTTP request via execSync
   // Create an inline Node.js script that uses built-in http/https modules
+  // Format as single line for node -e compatibility
   const escapedUrl = JSON.stringify(variablesUrl);
   const escapedApiKey = JSON.stringify(apiKey);
 
-  const nodeScript = `
-    const http = require('http');
-    const https = require('https');
-    const { URL } = require('url');
-    const u = ${escapedUrl};
-    const k = ${escapedApiKey};
-    const urlObj = new URL(u);
-    const isHttps = urlObj.protocol === 'https:';
-    const client = isHttps ? https : http;
-    const options = {
-      hostname: urlObj.hostname,
-      port: urlObj.port || (isHttps ? 443 : 80),
-      path: urlObj.pathname,
-      method: 'GET',
-      headers: {
-        'Authorization': 'Bearer ' + k,
-        'Content-Type': 'application/json',
-      },
-      timeout: 30000,
-    };
-    const req = client.request(options, (res) => {
-      let body = '';
-      res.on('data', (chunk) => { body += chunk.toString(); });
-      res.on('end', () => {
-        if (res.statusCode !== 200) {
-          try {
-            const error = JSON.parse(body);
-            process.stderr.write('ERROR:' + res.statusCode + ':' + (error.message || ''));
-          } catch {
-            process.stderr.write('ERROR:' + res.statusCode + ':' + body);
-          }
-          process.exit(1);
-        } else {
-          process.stdout.write(body);
-        }
-      });
-    });
-    req.on('error', (error) => {
-      process.stderr.write('ERROR:' + error.message);
-      process.exit(1);
-    });
-    req.setTimeout(30000, () => {
-      req.destroy();
-      process.stderr.write('ERROR:Request timeout');
-      process.exit(1);
-    });
-    req.end();
-  `;
+  const nodeScript = `const http = require('http'); const https = require('https'); const { URL } = require('url'); const u = ${escapedUrl}; const k = ${escapedApiKey}; const urlObj = new URL(u); const isHttps = urlObj.protocol === 'https:'; const client = isHttps ? https : http; const options = { hostname: urlObj.hostname, port: urlObj.port || (isHttps ? 443 : 80), path: urlObj.pathname, method: 'GET', headers: { 'Authorization': 'Bearer ' + k, 'Content-Type': 'application/json' }, timeout: 30000 }; const req = client.request(options, (res) => { let body = ''; res.on('data', (chunk) => { body += chunk.toString(); }); res.on('end', () => { if (res.statusCode !== 200) { try { const error = JSON.parse(body); process.stderr.write('ERROR:' + res.statusCode + ':' + (error.message || '')); } catch { process.stderr.write('ERROR:' + res.statusCode + ':' + body); } process.exit(1); } else { process.stdout.write(body); } }); }); req.on('error', (error) => { process.stderr.write('ERROR:' + error.message); process.exit(1); }); req.setTimeout(30000, () => { req.destroy(); process.stderr.write('ERROR:Request timeout'); process.exit(1); }); req.end();`;
 
   try {
     const output = execSync(`node -e ${JSON.stringify(nodeScript)}`, {
